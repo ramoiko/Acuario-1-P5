@@ -7,6 +7,7 @@ let puntos = 0;
 let pezX;
 let pezY;
 let pezTam = 80;
+let estado = 'inicio';   // pantalla actual: 'inicio' o 'jugando'
 
 function preload() {
   fondo = loadImage('imagenes/fondo mar.jpg');
@@ -16,6 +17,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
 
+  // posición inicial de la burbuja: al azar
   burbujaX = random(50, width - 50);
   burbujaY = random(50, height - 50);
 
@@ -31,6 +33,31 @@ function draw() {
   image(fondo, 0, 0, width, height);
   noTint();
 
+  // según el estado, muestra una pantalla u otra
+  if (estado === 'inicio') {
+    pantallaInicio();
+  } else if (estado === 'jugando') {
+    jugar();
+  } else if (estado === 'ganaste') {
+    pantallaGanaste();
+  }
+}
+
+function pantallaInicio() {
+  noStroke();
+  fill(255);
+  textAlign(CENTER, CENTER);   // centra el texto en la posición indicada
+
+  textSize(64);
+  text('Pescá la burbuja', width / 2, height / 2 - 40);
+
+  textSize(24);
+  text('Presioná ESPACIO para empezar', width / 2, height / 2 + 40);
+
+  textAlign(LEFT, BASELINE);   // vuelve a la alineación normal
+}
+
+function jugar() {
   // burbuja
   dibujarBurbuja(burbujaX, burbujaY, burbujaTam);
 
@@ -42,12 +69,22 @@ function draw() {
   dibujarPez(pezX, pezY, pezTam);
 
   // si el pez toca la burbuja: suena, suma un punto y la burbuja cambia de lugar
-  let distancia = dist(pezX, pezY, burbujaX, burbujaY);
+  let distancia = dist(pezX, pezY, burbujaX, burbujaY);   // distancia en píxeles entre pez y burbuja
   if (distancia < (pezTam + burbujaTam) / 2) {
     sonidoBlup.play();
     puntos = puntos + 1;
     burbujaX = random(50, width - 50);
     burbujaY = random(50, height - 50);
+
+    // cada 5 puntos el pez se agranda
+    if (puntos % 5 === 0) {
+      pezTam = pezTam + 10;
+    }
+
+    // al llegar a 50 puntos, se gana
+    if (puntos >= 50) {
+      estado = 'ganaste';
+    }
   }
 
   // puntos en pantalla
@@ -57,6 +94,41 @@ function draw() {
   text('Puntos: ' + puntos, 20, 50);
 }
 
+function pantallaGanaste() {
+  // el pez grande en el centro, festejando
+  dibujarPez(width / 2, height / 2 - 120, pezTam);
+
+  noStroke();
+  fill(255);
+  textAlign(CENTER, CENTER);
+
+  textSize(64);
+  text('¡Felicitaciones!', width / 2, height / 2 + 20);
+
+  textSize(28);
+  text('Llegaste a ' + puntos + ' puntos', width / 2, height / 2 + 80);
+
+  textSize(20);
+  text('Presioná ESPACIO para jugar de nuevo', width / 2, height / 2 + 130);
+
+  textAlign(LEFT, BASELINE);
+}
+
+// se ejecuta cada vez que se presiona una tecla
+function keyPressed() {
+  // desde el inicio, el espacio arranca el juego
+  if (key === ' ' && estado === 'inicio') {
+    estado = 'jugando';
+  }
+  // desde la victoria, el espacio reinicia todo
+  else if (key === ' ' && estado === 'ganaste') {
+    puntos = 0;
+    pezTam = 80;
+    pezX = width / 2;
+    pezY = height / 2;
+    estado = 'jugando';
+  }
+}
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
@@ -83,17 +155,6 @@ function dibujarBurbuja(x, y, tam) {
   fill(255, 255, 255, 100);
   circle(x + tam * 0.2, y + tam * 0.22, tam * 0.1);
 }
-
-function mousePressed() {
-  let distancia = dist(mouseX, mouseY, burbujaX, burbujaY); //mide la distancia en píxeles entre dos puntos
-
-  if (distancia < burbujaTam / 2) {
-    sonidoBlup.play(); //reproduce el sonido
-    puntos = puntos + 1;
-    burbujaX = random(50, width - 50);
-    burbujaY = random(50, height - 50);
-  }
-} 
 
 function dibujarPez(x, y, tam) {
   noStroke();
