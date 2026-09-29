@@ -3,6 +3,7 @@ let sonidoBlup;
 let burbujaX;
 let burbujaY;
 let burbujaTam = 50;
+let puntos = 0;
 
 function preload() {
   fondo = loadImage('imagenes/fondo mar.jpg');
@@ -21,8 +22,12 @@ function draw() {
   tint(255, 150);
   image(fondo, 0, 0, width, height);
   noTint();
-
   dibujarBurbuja(burbujaX, burbujaY, burbujaTam);
+  // muestro los puntos en la pantalla
+  noStroke();
+  fill(255);
+  textSize(32);// tamaño en píxeles
+  text('Puntos: ' + puntos, 20, 50);// texto, posición x, posición y
 }
 
 function windowResized() {
@@ -50,3 +55,14 @@ function dibujarBurbuja(x, y, tam) {
   fill(255, 255, 255, 100);
   circle(x + tam * 0.2, y + tam * 0.22, tam * 0.1);
 }
+
+function mousePressed() {
+  let distancia = dist(mouseX, mouseY, burbujaX, burbujaY); //mide la distancia en píxeles entre dos puntos
+
+  if (distancia < burbujaTam / 2) {
+    sonidoBlup.play(); //reproduce el sonido
+    puntos = puntos + 1;
+    burbujaX = random(50, width - 50);
+    burbujaY = random(50, height - 50);
+  }
+} 
